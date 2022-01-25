@@ -18,3 +18,42 @@ df.head()
 ![image](https://user-images.githubusercontent.com/75477273/150948455-3a09e1b0-e1f9-4d30-baf1-b7f8a0a02fce.png)
 
 
+```python
+# 사고일시에서 시간남 남기기
+time = df['사고일시']
+a = []
+for i in time:
+    b = i.split()[3]
+    a.append(b)
+df['사고일시'] = a
+df.head()
+```
+![image](https://user-images.githubusercontent.com/75477273/150948717-9b18d28b-921a-4fce-b55a-88a344f4e832.png)
+
+```파이썬
+count={}
+for i in a:
+    try: count[i] += 1
+    except: count[i]=1
+
+dict = sorted(count.items(), key=lambda x:x[1])
+
+dict.reverse()
+dict
+```
+![image](https://user-images.githubusercontent.com/75477273/150948825-9a03d5d0-341e-472f-b5fd-326f67d6e5cb.png)
+
+```파이썬
+# 시간대 그래프 표현
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Malgun Gothic'
+timelist = count.items()
+timelist = sorted(timelist)
+x,y = zip(*timelist)
+
+plt.figure(figsize=(15,10))
+plt.bar(x,y)
+plt.xlabel('시간')
+plt.ylabel('사고 횟수')
+plt.show()
+```
