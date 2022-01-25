@@ -583,7 +583,7 @@ df_thursday['사고일시'] = pd.to_numeric(df_thursday['사고일시'])
 df_thursday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
 df_thursday.drop_duplicates(['사고일시'],keep='last', inplace=True)
 df_thursday
-```
+
 	사고일시	사건횟수	시군구
 23	0	4	경상남도 창원시 성산구 상남동
 15	1	1	경상남도 창원시 의창구 팔용동
@@ -595,3 +595,4 @@ df_thursday
 35	8	1	경상남도 창원시 성산구 상남동
 59	9	1	경상남도 창원시 마산회원구 양덕동
 0	10	3	경상남도 창원시 마산회원구 내서읍
+```
