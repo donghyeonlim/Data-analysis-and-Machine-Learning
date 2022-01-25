@@ -73,7 +73,7 @@ dict = sorted(day_count.items(), key=lambda x:x[1])
 
 dict.reverse()
 dict
-```
+
 [('금요일', 542),
  ('수요일', 534),
  ('월요일', 530),
@@ -81,6 +81,7 @@ dict
  ('화요일', 493),
  ('토요일', 491),
  ('일요일', 354)]
+ ```
  
  ```python
  day_list = day_count.items()
@@ -112,7 +113,7 @@ dict = sorted(count.items(), key=lambda x:x[1])
 dict.reverse()
 df1 = pd.DataFrame(dict,columns=['동','횟수'])
 df1
-```
+
 	동	횟수
 0	상남동	180
 1	용원동	135
@@ -125,7 +126,7 @@ df1
 157	대외동	1
 158	대천동	1
 159	삼동동	1
-
+```
 ```python
 timelist = count.items()
 timelist = sorted(timelist)
@@ -317,7 +318,7 @@ df_monday['사고일시'] = pd.to_numeric(df_monday['사고일시'])
 df_monday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
 df_monday.drop_duplicates(['사고일시'],keep='last', inplace=True)
 df_monday
-```
+
 사고일시	사건횟수	시군구
 23	0	1	경상남도 창원시 의창구 팔용동
 15	1	1	경상남도 창원시 의창구 팔용동
@@ -331,6 +332,7 @@ df_monday
 11	10	3	경상남도 창원시 의창구 팔용동
 13	11	2	경상남도 창원시 의창구 팔용동
 53	12	2	경상남도 창원시 마산회원구 양덕동
+```
 ```python
 #top 5 화요일 사고 일시
 
@@ -408,7 +410,7 @@ df_tuesday['사고일시'] = pd.to_numeric(df_tuesday['사고일시'])
 df_tuesday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
 df_tuesday.drop_duplicates(['사고일시'],keep='last', inplace=True)
 df_tuesday
-```
+
 	사고일시	사건횟수	시군구
 23	0	1	경상남도 창원시 의창구 팔용동
 15	1	2	경상남도 창원시 의창구 팔용동
@@ -417,6 +419,7 @@ df_tuesday
 27	5	2	경상남도 창원시 성산구 상남동
 10	6	1	경상남도 창원시 마산회원구 내서읍
 41	7	2	경상남도 창원시 진해구 용원동
+```
 
 ```python
 #top 5 수요일 사고 일시
@@ -495,7 +498,7 @@ df_wednesday['사고일시'] = pd.to_numeric(df_wednesday['사고일시'])
 df_wednesday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
 df_wednesday.drop_duplicates(['사고일시'],keep='last', inplace=True)
 df_wednesday
-```
+
 	사고일시	사건횟수	시군구
 23	0	1	경상남도 창원시 의창구 팔용동
 15	1	1	경상남도 창원시 의창구 팔용동
@@ -506,6 +509,8 @@ df_wednesday
 38	7	3	경상남도 창원시 진해구 용원동
 35	8	1	경상남도 창원시 성산구 상남동
 59	9	1	경상남도 창원시 마산회원구 양덕동
+```
+
 ```python
 #top 5 목요일 사고 일시
 
@@ -596,3 +601,316 @@ df_thursday
 59	9	1	경상남도 창원시 마산회원구 양덕동
 0	10	3	경상남도 창원시 마산회원구 내서읍
 ```
+
+```python
+#top 5 금요일 사고 일시
+
+# 상남동 
+df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
+df_sangnam = df_sangnam[['시군구','사고일시','요일']]
+df_sangnam_friday = df_sangnam[df_sangnam['요일'] == '금요일']
+df_sangnam_friday_count = df_sangnam_friday[['사고일시']].value_counts()
+df_sangnam_friday_count = pd.DataFrame(df_sangnam_friday_count,columns=['사건횟수'])
+df_sangnam_friday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_sangnam_friday_count)):
+    list_sn.append('경상남도 창원시 성산구 상남동')
+df_sangnam_friday_count['시군구'] = list_sn  
+# print(df_sangnam_friday_count)
+
+# 용원동
+df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
+df_wongone = df_wongone[['시군구','사고일시','요일']]
+df_wongone_friday = df_wongone[df_wongone['요일'] == '금요일']
+df_wongone_friday_count = df_wongone_friday[['사고일시']].value_counts()
+df_wongone_friday_count = pd.DataFrame(df_wongone_friday_count,columns=['사건횟수'])
+df_wongone_friday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_wongone_friday_count)):
+    list_sn.append('경상남도 창원시 진해구 용원동')
+df_wongone_friday_count['시군구'] = list_sn  
+# print(df_wongone_friday_count)
+
+# 팔용동
+df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
+df_palong = df_palong[['시군구','사고일시','요일']]
+df_palong_friday = df_palong[df_palong['요일'] == '금요일']
+df_palong_friday_count = df_palong_friday[['사고일시']].value_counts()
+df_palong_friday_count = pd.DataFrame(df_palong_friday_count,columns=['사건횟수'])
+df_palong_friday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_palong_friday_count)):
+    list_sn.append('경상남도 창원시 의창구 팔용동')
+df_palong_friday_count['시군구'] = list_sn  
+# print(df_palong_friday_count)
+
+# 내서읍
+df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
+df_neseo = df_neseo[['시군구','사고일시','요일']]
+df_neseo_friday = df_neseo[df_neseo['요일'] == '금요일']
+df_neseo_friday_count = df_neseo_friday[['사고일시']].value_counts()
+df_neseo_friday_count = pd.DataFrame(df_neseo_friday_count,columns=['사건횟수'])
+df_neseo_friday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_neseo_friday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 내서읍')
+df_neseo_friday_count['시군구'] = list_sn  
+# print(df_neseo_friday_count)
+
+# 양덕동
+df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
+df_yangdec = df_yangdec[['시군구','사고일시','요일']]
+df_yangdec_friday = df_yangdec[df_yangdec['요일'] == '금요일']
+df_yangdec_friday_count = df_yangdec_friday[['사고일시']].value_counts()
+df_yangdec_friday_count = pd.DataFrame(df_yangdec_friday_count,columns=['사건횟수'])
+df_yangdec_friday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_yangdec_friday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 양덕동')
+df_yangdec_friday_count['시군구'] = list_sn  
+# print(df_yangdec_friday_count)
+
+df_m = [df_neseo_friday_count,df_palong_friday_count,df_sangnam_friday_count,df_wongone_friday_count,df_yangdec_friday_count]
+df_friday = pd.concat(df_m,ignore_index=True)
+df_friday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
+
+df_friday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
+df_friday['사고일시'] = pd.to_numeric(df_friday['사고일시'])
+df_friday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
+df_friday.drop_duplicates(['사고일시'],keep='last', inplace=True)
+df_friday
+
+
+사고일시	사건횟수	시군구
+23	0	1	경상남도 창원시 의창구 팔용동
+15	1	2	경상남도 창원시 의창구 팔용동
+40	2	3	경상남도 창원시 진해구 용원동
+5	3	1	경상남도 창원시 마산회원구 내서읍
+27	5	1	경상남도 창원시 성산구 상남동
+19	6	1	경상남도 창원시 의창구 팔용동
+41	7	2	경상남도 창원시 진해구 용원동
+35	8	1	경상남도 창원시 성산구 상남동
+```
+```python
+#top 5 토요일 사고 일시
+
+# 상남동 
+df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
+df_sangnam = df_sangnam[['시군구','사고일시','요일']]
+df_sangnam_saturday = df_sangnam[df_sangnam['요일'] == '토요일']
+df_sangnam_saturday_count = df_sangnam_saturday[['사고일시']].value_counts()
+df_sangnam_saturday_count = pd.DataFrame(df_sangnam_saturday_count,columns=['사건횟수'])
+df_sangnam_saturday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_sangnam_saturday_count)):
+    list_sn.append('경상남도 창원시 성산구 상남동')
+df_sangnam_saturday_count['시군구'] = list_sn  
+# print(df_sangnam_saturday_count)
+
+# 용원동
+df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
+df_wongone = df_wongone[['시군구','사고일시','요일']]
+df_wongone_saturday = df_wongone[df_wongone['요일'] == '토요일']
+df_wongone_saturday_count = df_wongone_saturday[['사고일시']].value_counts()
+df_wongone_saturday_count = pd.DataFrame(df_wongone_saturday_count,columns=['사건횟수'])
+df_wongone_saturday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_wongone_saturday_count)):
+    list_sn.append('경상남도 창원시 진해구 용원동')
+df_wongone_saturday_count['시군구'] = list_sn  
+# print(df_wongone_saturday_count)
+
+# 팔용동
+df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
+df_palong = df_palong[['시군구','사고일시','요일']]
+df_palong_saturday = df_palong[df_palong['요일'] == '토요일']
+df_palong_saturday_count = df_palong_saturday[['사고일시']].value_counts()
+df_palong_saturday_count = pd.DataFrame(df_palong_saturday_count,columns=['사건횟수'])
+df_palong_saturday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_palong_saturday_count)):
+    list_sn.append('경상남도 창원시 의창구 팔용동')
+df_palong_saturday_count['시군구'] = list_sn  
+# print(df_palong_saturday_count)
+
+# 내서읍
+df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
+df_neseo = df_neseo[['시군구','사고일시','요일']]
+df_neseo_saturday = df_neseo[df_neseo['요일'] == '토요일']
+df_neseo_saturday_count = df_neseo_saturday[['사고일시']].value_counts()
+df_neseo_saturday_count = pd.DataFrame(df_neseo_saturday_count,columns=['사건횟수'])
+df_neseo_saturday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_neseo_saturday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 내서읍')
+df_neseo_saturday_count['시군구'] = list_sn  
+# print(df_neseo_saturday_count)
+
+# 양덕동
+df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
+df_yangdec = df_yangdec[['시군구','사고일시','요일']]
+df_yangdec_saturday = df_yangdec[df_yangdec['요일'] == '토요일']
+df_yangdec_saturday_count = df_yangdec_saturday[['사고일시']].value_counts()
+df_yangdec_saturday_count = pd.DataFrame(df_yangdec_saturday_count,columns=['사건횟수'])
+df_yangdec_saturday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_yangdec_saturday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 양덕동')
+df_yangdec_saturday_count['시군구'] = list_sn  
+# print(df_yangdec_saturday_count)
+
+df_m = [df_neseo_saturday_count,df_palong_saturday_count,df_sangnam_saturday_count,df_wongone_saturday_count,df_yangdec_saturday_count]
+df_saturday = pd.concat(df_m,ignore_index=True)
+df_saturday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
+
+df_saturday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
+df_saturday['사고일시'] = pd.to_numeric(df_saturday['사고일시'])
+df_saturday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
+df_saturday.drop_duplicates(['사고일시'],keep='last', inplace=True)
+df_saturday
+
+	사고일시	사건횟수	시군구
+23	0	2	경상남도 창원시 성산구 상남동
+15	1	2	경상남도 창원시 의창구 팔용동
+40	2	1	경상남도 창원시 진해구 용원동
+5	3	1	경상남도 창원시 마산회원구 내서읍
+27	5	1	경상남도 창원시 성산구 상남동
+19	6	1	경상남도 창원시 의창구 팔용동
+6	7	1	경상남도 창원시 마산회원구 내서읍
+```
+```python
+#top 5 일요일 사고 일시
+
+# 상남동 
+df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
+df_sangnam = df_sangnam[['시군구','사고일시','요일']]
+df_sangnam_sunday = df_sangnam[df_sangnam['요일'] == '일요일']
+df_sangnam_sunday_count = df_sangnam_sunday[['사고일시']].value_counts()
+df_sangnam_sunday_count = pd.DataFrame(df_sangnam_sunday_count,columns=['사건횟수'])
+df_sangnam_sunday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_sangnam_sunday_count)):
+    list_sn.append('경상남도 창원시 성산구 상남동')
+df_sangnam_sunday_count['시군구'] = list_sn  
+# print(df_sangnam_sunday_count)
+
+# 용원동
+df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
+df_wongone = df_wongone[['시군구','사고일시','요일']]
+df_wongone_sunday = df_wongone[df_wongone['요일'] == '일요일']
+df_wongone_sunday_count = df_wongone_sunday[['사고일시']].value_counts()
+df_wongone_sunday_count = pd.DataFrame(df_wongone_sunday_count,columns=['사건횟수'])
+df_wongone_sunday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_wongone_sunday_count)):
+    list_sn.append('경상남도 창원시 진해구 용원동')
+df_wongone_sunday_count['시군구'] = list_sn  
+# print(df_wongone_sunday_count)
+
+# 팔용동
+df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
+df_palong = df_palong[['시군구','사고일시','요일']]
+df_palong_sunday = df_palong[df_palong['요일'] == '일요일']
+df_palong_sunday_count = df_palong_sunday[['사고일시']].value_counts()
+df_palong_sunday_count = pd.DataFrame(df_palong_sunday_count,columns=['사건횟수'])
+df_palong_sunday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_palong_sunday_count)):
+    list_sn.append('경상남도 창원시 의창구 팔용동')
+df_palong_sunday_count['시군구'] = list_sn  
+# print(df_palong_sunday_count)
+
+# 내서읍
+df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
+df_neseo = df_neseo[['시군구','사고일시','요일']]
+df_neseo_sunday = df_neseo[df_neseo['요일'] == '일요일']
+df_neseo_sunday_count = df_neseo_sunday[['사고일시']].value_counts()
+df_neseo_sunday_count = pd.DataFrame(df_neseo_sunday_count,columns=['사건횟수'])
+df_neseo_sunday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_neseo_sunday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 내서읍')
+df_neseo_sunday_count['시군구'] = list_sn  
+# print(df_neseo_sunday_count)
+
+# 양덕동
+df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
+df_yangdec = df_yangdec[['시군구','사고일시','요일']]
+df_yangdec_sunday = df_yangdec[df_yangdec['요일'] == '일요일']
+df_yangdec_sunday_count = df_yangdec_sunday[['사고일시']].value_counts()
+df_yangdec_sunday_count = pd.DataFrame(df_yangdec_sunday_count,columns=['사건횟수'])
+df_yangdec_sunday_count.reset_index(inplace=True)
+list_sn=[]
+for i in range(0,len(df_yangdec_sunday_count)):
+    list_sn.append('경상남도 창원시 마산회원구 양덕동')
+df_yangdec_sunday_count['시군구'] = list_sn  
+# print(df_yangdec_sunday_count)
+
+df_m = [df_neseo_sunday_count,df_palong_sunday_count,df_sangnam_sunday_count,df_wongone_sunday_count,df_yangdec_sunday_count]
+df_sunday = pd.concat(df_m,ignore_index=True)
+df_sunday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
+
+df_sunday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
+df_sunday['사고일시'] = pd.to_numeric(df_sunday['사고일시'])
+df_sunday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
+df_sunday.drop_duplicates(['사고일시'],keep='last', inplace=True)
+df_sunday
+
+	사고일시	사건횟수	시군구
+23	0	1	경상남도 창원시 성산구 상남동
+15	1	1	경상남도 창원시 의창구 팔용동
+40	2	1	경상남도 창원시 마산회원구 양덕동
+5	3	1	경상남도 창원시 마산회원구 내서읍
+27	5	3	경상남도 창원시 진해구 용원동
+19	6	2	경상남도 창원시 성산구 상남동
+38	7	2	경상남도 창원시 마산회원구 양덕동
+```
+
+```python
+a = input('요일을 입력하세요:      ')
+b = input('시간을 입력하세요:       ')
+
+if a == '월요일':
+    df_monday['사고일시'] = df_monday['사고일시'].astype(str)
+    place = df_monday[df_monday.사고일시.str.startswith(b)].iloc[0,2]
+elif a == '화요일':
+    df_tuesday['사고일시'] = df_tuesday['사고일시'].astype(str)
+    place = df_tuesday[df_tuesday.사고일시.str.startswith(b)].iloc[0,2]
+elif a == '수요일':
+    df_wednesday['사고일시'] = df_wednesday['사고일시'].astype(str)
+    place = df_wednesday[df_wednesday.사고일시.str.startswith(b)].iloc[0,2]
+elif a =='목요일':
+    df_tuesday['사고일시'] = df_tuesday['사고일시'].astype(str)
+    place = df_tuesday[df_tuesday.사고일시.str.startswith(b)].iloc[0,2]
+elif a == '금요일':
+    df_friday['사고일시'] = df_friday['사고일시'].astype(str)
+    place = df_friday[df_friday.사고일시.str.startswith(b)].iloc[0,2]
+elif a == '토요일':
+    df_saturday['사고일시'] = df_df_saturdaysunday['사고일시'].astype(str)
+    place = df_saturday[df_saturday.사고일시.str.startswith(b)].iloc[0,2]
+elif a == '일요일':
+    df_sunday['사고일시'] = df_sunday['사고일시'].astype(str)
+    place = df_sunday[df_sunday.사고일시.str.startswith(b)].iloc[0,2]
+else:
+    print('요일 잘 못 입력')
+
+print('주요 사고 발생 지역:   ',place)
+try:
+    day = (place + '사무소')
+    gmap_key = 'AIzaSyD7RNFGi4878hN8gN5RVBpwgSfZ_TBVKko'
+    gmaps = googlemaps.Client(gmap_key)
+    geocode_result = gmaps.geocode((day), language='ko') 
+except:
+    print('사건미발생시간')
+latitude  = geocode_result[0]["geometry"]["location"]["lat"] # 리스트에서 위도 추출
+longitude = geocode_result[0]["geometry"]["location"]["lng"] # 리스트에서 경도 추출
+
+map = folium.Map(location=[latitude,longitude], zoom_start=15)
+folium.Marker([latitude,longitude],icon = folium.Icon(color='blue')).add_to(map)
+map
+
+요일을 입력하세요:      금요일
+시간을 입력하세요:       10
+주요 사고 발생 지역:    경상남도 창원시 의창구 팔용동
+```
+![image](https://user-images.githubusercontent.com/75477273/150951063-a29acfb0-883a-4fed-8f30-34af8a48560b.png)
