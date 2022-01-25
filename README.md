@@ -16,3 +16,5 @@ df = pd.read_excel('accidentInfoList.xlsx')
 df.head()
 ```
 ![image](https://user-images.githubusercontent.com/75477273/150948455-3a09e1b0-e1f9-4d30-baf1-b7f8a0a02fce.png)
+
+
