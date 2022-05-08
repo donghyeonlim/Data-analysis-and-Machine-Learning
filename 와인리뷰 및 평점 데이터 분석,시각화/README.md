@@ -254,7 +254,7 @@ for i in range(len(des_df)):
     ls.append(b)
 des_df['description_word'] = ls
 des_df
-```
+```python
 	county	description	description_word
 0	Portugal	[This is ripe and fruity, a wine that is smoot...	[ripe, fruity, wine, Firm, juicy, red, berry, ...
 1	Australia	[This medium-bodied Chardonnay features aromas...	[pineapple, cashew, Similar, ripe, pineapple, ...
