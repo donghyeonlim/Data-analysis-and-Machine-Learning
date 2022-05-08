@@ -16,901 +16,277 @@ from wordcloud import WordCloud
 df = pd.read_csv('winemag-data-130k-v2.csv')
 df
 ```
+<img width="745" alt="image" src="https://user-images.githubusercontent.com/75477273/167278468-27d64816-4479-46b4-b4fe-3eee86e65ee6.png">
 
 
 ```python
-# 사고일시에서 시간남 남기기
-time = df['사고일시']
-a = []
-for i in time:
-    b = i.split()[3]
-    a.append(b)
-df['사고일시'] = a
+## 필요없는 Unnamed: 0열 삭제
+df.drop(columns=['Unnamed: 0'],inplace=True)
 df.head()
 ```
-![image](https://user-images.githubusercontent.com/75477273/150948717-9b18d28b-921a-4fce-b55a-88a344f4e832.png)
+<img width="735" alt="image" src="https://user-images.githubusercontent.com/75477273/167278492-403a6ef4-fdf5-42fe-b610-78fd1fb9e8dc.png">
 
 ```python
-count={}
-for i in a:
-    try: count[i] += 1
-    except: count[i]=1
-
-dict = sorted(count.items(), key=lambda x:x[1])
-
-dict.reverse()
-dict
+df['country'].value_counts()
 ```
-![image](https://user-images.githubusercontent.com/75477273/150948825-9a03d5d0-341e-472f-b5fd-326f67d6e5cb.png)
+<img width="388" alt="image" src="https://user-images.githubusercontent.com/75477273/167278506-143eff8f-0d18-4618-9e4f-38f74ae453d4.png">
 
 ```python
-# 시간대 그래프 표현
-import matplotlib.pyplot as plt
-plt.rcParams['font.family'] = 'Malgun Gothic'
-timelist = count.items()
-timelist = sorted(timelist)
-x,y = zip(*timelist)
-
-plt.figure(figsize=(15,10))
-plt.bar(x,y)
-plt.xlabel('시간')
-plt.ylabel('사고 횟수')
-plt.show()
+## 1000개 이하 데이터 삭제 => 그 이하는 데이터가 적어 리뷰와 점수에 대한 명확성이 떨어진다고 생각
+a = pd.DataFrame(df['country'].value_counts())>1000
+a.reset_index(inplace=True)
+b = a[a['country']==False]
+b['index']
 ```
-![image](https://user-images.githubusercontent.com/75477273/150948989-e2229cb5-4343-4264-bc9d-391f829a79d8.png)
-예상대로 교통량이 가장 많은 퇴근시간대인 17시에서 19시 사이에 가장 많은 교통사고 발생
+<img width="236" alt="image" src="https://user-images.githubusercontent.com/75477273/167278538-dd9e9ca1-624a-4c2a-826b-f985c2bdc7a3.png">
+
+```python
+for i in range(len(b)):
+    idx = df[df['country']== b['index'].iloc[i]].index
+    df = df.drop(idx)
+df.country.value_counts()
+```
+<img width="199" alt="image" src="https://user-images.githubusercontent.com/75477273/167278545-a09c26a3-e22a-4ed6-bd27-5e038606cbe0.png">
+
+## 나라별 분석
+```python
+df_country = df.groupby(['country']).mean().reset_index()
+df_country
+```
+<img width="268" alt="image" src="https://user-images.githubusercontent.com/75477273/167278558-04bb16f2-7632-4061-8584-28cb8dd64b4c.png">
+
+```python
+fig = plt.figure(figsize=(25,10))
+sns.set_style("darkgrid")
+ax1 = fig.add_subplot(1,2,1)  ## (행갯수,열갯수,순서)
+ax2 = fig.add_subplot(1,2,2)
+sns.pointplot(x = df_country['country'] ,y = df_country.points,color='blue',ax=ax1)
+sns.pointplot(x = df_country['country'] ,y = df_country.price,color='skyblue',ax=ax2)
+```
+<img width="746" alt="image" src="https://user-images.githubusercontent.com/75477273/167278569-db7b5c15-b058-466a-be4f-cbdcd40df3a9.png">
+## 품종분석
+
+```python
+df_variety = df.groupby(['variety']).mean().reset_index()
+df_variety
+```
+<img width="326" alt="image" src="https://user-images.githubusercontent.com/75477273/167278594-104002e6-0470-4035-a45e-71382993c946.png">
+
+```python
+fig = plt.figure(figsize=(25,10))
+sns.set_style("darkgrid")
+ax1 = fig.add_subplot(1,2,1)  ## (행갯수,열갯수,순서)
+ax2 = fig.add_subplot(1,2,2)
+sns.pointplot(x = df_variety['variety'] ,y = df_variety.points,color='blue',ax=ax1)
+sns.pointplot(x = df_variety['variety'] ,y = df_variety.price,color='skyblue',ax=ax2)
+```
+<img width="748" alt="image" src="https://user-images.githubusercontent.com/75477273/167278616-d325a6a8-43fe-4806-8ac3-3473a1d97e29.png">
+
+
+## 점수로 나타내어 비교하기
 ``` python
-# 요일별 분석
-day = df['요일']
-daylist = []
-for i in day:
-    daylist.append(i)
-day_count={}
-for i in daylist:
-    try: day_count[i] += 1
-    except: day_count[i]=1
-dict = sorted(day_count.items(), key=lambda x:x[1])
+df_variety = df_variety.sort_values(['points','price'],ascending=False).head(20)
+df_variety['quality_point'] = df_variety['points']/df_variety['price']
+df_variety.sort_values(['quality_point'],ascending=False)
+```
+<img width="501" alt="image" src="https://user-images.githubusercontent.com/75477273/167278638-c86887ac-5818-47dc-a9ce-01dd255c378b.png">
 
-dict.reverse()
-dict
+```python
+df[df['variety']=='Blauburgunder']
+```
+<img width="734" alt="image" src="https://user-images.githubusercontent.com/75477273/167278663-87be590c-36e7-485d-b57b-1bc891197e52.png">
 
-[('금요일', 542),
- ('수요일', 534),
- ('월요일', 530),
- ('목요일', 519),
- ('화요일', 493),
- ('토요일', 491),
- ('일요일', 354)]
- ```
+```python
+df[df['variety']=='Sirica']
+```
+
+<img width="736" alt="image" src="https://user-images.githubusercontent.com/75477273/167278670-58ab6fc8-2d27-4291-8a2f-88f4b22294d8.png">
+
+
+```python
+df[df['variety']=='Roviello']
+```
+<img width="742" alt="image" src="https://user-images.githubusercontent.com/75477273/167278673-b4cb87aa-3343-4c8b-a689-54c27b078159.png">
+
+```python
+df[df['variety']=='Gelber Traminer']
+```
+<img width="724" alt="image" src="https://user-images.githubusercontent.com/75477273/167278680-48086caa-4c9a-4f62-bc05-7e05f764551e.png">
+이탈리아와 오스트리아에서 나오는 품종으로 만든 와인이 가성비가 좋은걸 볼수 있음
+
+### 앞그래프와 비교했을 떄 오스트리아 와인이 가장 가성비가 높아 보인다
+
+## 리뷰(맛 정보) 시각화
+
+```python
+county_name = set(df.country.values)
+county_name
+```
+{'Argentina',
+ 'Australia',
+ 'Austria',
+ 'Chile',
+ 'France',
+ 'Germany',
+ 'Italy',
+ 'New Zealand',
+ 'Portugal',
+ 'South Africa',
+ 'Spain',
+ 'US',
+ nan}
  
  ```python
- day_list = day_count.items()
-x,y = zip(*day_list)
-plt.figure(figsize=(15,10))
-plt.bar(x,y)
-plt.xlabel('요일')
-plt.ylabel('사고 횟수')
-plt.show()
-```
-![image](https://user-images.githubusercontent.com/75477273/150949182-1369a10b-840c-4bb3-ab4b-a77b53a1b275.png)
-예상대로 금요일이 가장 많이 발생하지만 주말에 사고가 많이 발생 한다는 가정은 틀림
+ dic={}
+ var_index={}
 
-예상: 출근의 피로함과 금요일 회식등으로 인해 주말에는 교통량이 감소한다고 생각
+#ls는 2차원 list로 초기화 한다.
+ls = [ [] for i in  range(len(county_name))] # variety 개수 만큼 리스트 추가
 
-```python
-si = df['시군구']
-a = 0
-d = []
-for i in si:
-    c = i.split()[3]
-    d.append(c)
-count={}
-for i in d:
-    try: count[i] += 1
-    except: count[i]=1
-dict = sorted(count.items(), key=lambda x:x[1])
-
-dict.reverse()
-df1 = pd.DataFrame(dict,columns=['동','횟수'])
-df1
-
-	동	횟수
-0	상남동	180
-1	용원동	135
-2	팔용동	122
-3	내서읍	100
-4	양덕동	96
-...	...	...
-155	속천동	1
-156	대장동	1
-157	대외동	1
-158	대천동	1
-159	삼동동	1
-```
-```python
-timelist = count.items()
-timelist = sorted(timelist)
-x,y = zip(*timelist)
-
-plt.figure(figsize=(400,25))
-plt.bar(x,y)
-plt.xlabel('동이름')
-plt.ylabel('사고 횟수')
-plt.show()
-```
-![image](https://user-images.githubusercontent.com/75477273/150949504-8a753821-304d-4740-9977-d727c84803c9.png)
-
-
-```python
-## 지도로 보시 쉽게 표현
-## 시군구 json파일 형식으로 변경
-
-df['도'] = [eachAddress.split()[0] for eachAddress in df['시군구']]
-df['시'] = [eachAddress.split()[1] for eachAddress in df['시군구']]
-df['구'] = [eachAddress.split()[2] for eachAddress in df['시군구']]
-df['동'] = [eachAddress.split()[3] for eachAddress in df['시군구']]
-df['연도별'] = [eachAddress.split()[0] for eachAddress in df['사고일시']]
-df["시군구"] = df["도"]+ " " + df["시"] + df["구"] + " " + df["동"] 
-
-import json
-import folium
-import googlemaps
-
-import requests, json
-url = requests.get("https://raw.githubusercontent.com/vuski/admdongkor/master/ver2021xxxx_for%20update/HangJeongDong_ver20210701.geojson")
-text = url.text
-print(type(text))
-geo_str = json.loads(text)
-geo_str
-gmap_key = '000000000000000'
-gmaps = googlemaps.Client(key=gmap_key)
-# 시군구에 있는 주소로 위도, 경도 불러옴
-# try-except구문을 사용하여 try구문 실행하다가 에러가 나면 except구문에서 지정된 코드를 실행하게 되는데 이 경우는 NaN을 저장
-from tqdm import tqdm_notebook
-
-lat = []
-lng = []
-
-for n in tqdm_notebook(df.index):
-    try:
-        tmp_add = str(df['시군구'][n]).split('(')[0]
-        tmp_map = gmaps.geocode(tmp_add)
-        
-        tmp_loc = tmp_map[0].get('geometry')
-        lat.append(tmp_loc['location']['lat'])
-        lng.append(tmp_loc['location']['lng'])
-        
-    except:
-        lat.append(np.nan)
-        lng.append(np.nan)
-        print('Here is nan !')
-        
-df['lat']=lat
-df['lng']=lng
-df
-```
-![image](https://user-images.githubusercontent.com/75477273/150949727-191759e7-8047-46f7-a8cb-5acf6bae422c.png)
+# var_index dic을 만든다.
+idx_i = 0 
+for i in county_name:
+  var_index[i] = idx_i
+  idx_i = idx_i +1 
+var_index
+ ```
+ {nan: 0,
+ 'Portugal': 1,
+ 'Australia': 2,
+ 'New Zealand': 3,
+ 'Spain': 4,
+ 'Argentina': 5,
+ 'Germany': 6,
+ 'US': 7,
+ 'Chile': 8,
+ 'Italy': 9,
+ 'Austria': 10,
+ 'France': 11,
+ 'South Africa': 12}
+ 
+ ```python
+ for j in range(len(df)):
+    country_name = df.iloc[j].country
+    kw_idx =   var_index[country_name]
+    ls[kw_idx].append(df.iloc[j].description)
+ #앞에서 만들어진 list를 dic에 만들어 준다.
+for i in county_name:
+    ls_idx = var_index[i] # 해당 list의 위치를 얻어냄
+    dic[i] = ls[ls_idx]
+ ```
+ 
+ 
+ ```python
+des_df = pd.DataFrame(dic.items(),
+                   columns=['county', 'description'])
+des_df
+ ```
+ 0	NaN	[Amber in color, this wine has aromas of peach...
+1	Portugal	[This is ripe and fruity, a wine that is smoot...
+2	Australia	[This medium-bodied Chardonnay features aromas...
+3	New Zealand	[The Stoneleigh style traditionally favors rip...
+4	Spain	[Blackberry and raspberry aromas show a typica...
+5	Argentina	[Baked plum, molasses, balsamic vinegar and ch...
+6	Germany	[Savory dried thyme notes accent sunnier flavo...
+7	US	[Tart and snappy, the flavors of lime flesh an...
+8	Chile	[White flower, lychee and apple aromas carry t...
+9	Italy	[Aromas include tropical fruit, broom, brimsto...
+10	Austria	[Freshness characterizes the nose: green pear,...
+11	France	[This dry and restrained wine offers spice in ...
+12	South Africa	[Etienne Le Riche is a total Cabernet speciali...
 
 ```python
-# 지도 중앙점 표시
-print(df['lat'].mean())
-print(df['lng'].mean())
-count={}
-for i in df['시군구']:
-    try: count[i] += 1
-    except: count[i]=1
-dict = sorted(count.items(), key=lambda x:x[1])
-
-dict.reverse()
-df_1 = pd.DataFrame(dict,columns=['시군구','횟수'])
-df_1.head()
-# sigungu_data = pd.pivot_table(df, index=['시군구'], values=['사고일시'],aggfunc='count')
-# sigungu_data
-map = folium.Map(location=[df['lat'].mean(),df['lng'].mean()], zoom_start=10.5)
-
-map.choropleth(geo_data = geo_str, data= df_1, columns= ['시군구','횟수'],fill_color='YlGn', 
-               key_on='feature.properties.adm_nm', fill_opacity=0.6, line_opacity=0.2)
-map
+## nan 값 삭제
+des_df.drop(index=0,inplace=True)
+des_df.reset_index(drop=True,inplace=True)
+des_df
 ```
-![image](https://user-images.githubusercontent.com/75477273/150949895-e75994cb-09d1-47ab-96c5-691da6b70d31.png)
-```python
-map = folium.Map(location=[df['lat'].mean(),df['lng'].mean()], zoom_start=11, tiles='openstreetmap')
-
-from folium import Marker
-from folium.plugins import MarkerCluster
-
-mc= MarkerCluster()
-for _, row in df.iterrows():
-    mc.add_child(
-        Marker(location = [row['lat'], row['lng']],
-          popup=row['사고일시'],icon=folium.Icon(color='red',icon='car',prefix='fa')))
-    
-map.add_child(mc)
-map
-```
-![image](https://user-images.githubusercontent.com/75477273/150949983-d414d80f-6c8a-4732-b3cb-fa182fc0b2b2.png)
-결과로 상남동과 팔용동은 예상과 같이 사고가 많이 나는것을 확인 할 수 있으나,다른 곳은 예상과 달리 용원동,내서읍이 그 다음으로 가장 많이 일어남
-
-그 이유로 출퇴근 시간에 부산신항 근처로 교통량이 많은 용원동과 고속도로 IC가 있는 내서에서 많은 사고가 발생
-
-###시간과 요일별로 사고가 가장 많이 일어나는 곳을 알려주자는 취지에서 만든 프로그램
+	county	description
+0	Portugal	[This is ripe and fruity, a wine that is smoot...
+1	Australia	[This medium-bodied Chardonnay features aromas...
+2	New Zealand	[The Stoneleigh style traditionally favors rip...
+3	Spain	[Blackberry and raspberry aromas show a typica...
+4	Argentina	[Baked plum, molasses, balsamic vinegar and ch...
+5	Germany	[Savory dried thyme notes accent sunnier flavo...
+6	US	[Tart and snappy, the flavors of lime flesh an...
+7	Chile	[White flower, lychee and apple aromas carry t...
+8	Italy	[Aromas include tropical fruit, broom, brimsto...
+9	Austria	[Freshness characterizes the nose: green pear,...
+10	France	[This dry and restrained wine offers spice in ...
+11	South Africa	[Etienne Le Riche is a total Cabernet speciali...
 
 ```python
-df = pd.read_excel('accidentInfoList.xlsx')
-## 월요일 사고 정리
-time = df['사고일시']
-a = []
-for i in time:
-    b = i.split()[3]
-    a.append(b)
-df['사고일시'] = a
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_monday = df_sangnam[df_sangnam['요일'] == '월요일']
-df_sangnam_monday_count = df_sangnam_monday[['사고일시']].value_counts()
-df_sangnam_monday_count = pd.DataFrame(df_sangnam_monday_count,columns=['사건횟수'])
-df_sangnam_monday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_monday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_monday_count['시군구'] = list_sn  
-# print(df_sangnam_monday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_monday = df_wongone[df_wongone['요일'] == '월요일']
-df_wongone_monday_count = df_wongone_monday[['사고일시']].value_counts()
-df_wongone_monday_count = pd.DataFrame(df_wongone_monday_count,columns=['사건횟수'])
-df_wongone_monday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_monday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_monday_count['시군구'] = list_sn  
-# print(df_wongone_monday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_monday = df_palong[df_palong['요일'] == '월요일']
-df_palong_monday_count = df_palong_monday[['사고일시']].value_counts()
-df_palong_monday_count = pd.DataFrame(df_palong_monday_count,columns=['사건횟수'])
-df_palong_monday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_monday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_monday_count['시군구'] = list_sn  
-# print(df_palong_monday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_monday = df_neseo[df_neseo['요일'] == '월요일']
-df_neseo_monday_count = df_neseo_monday[['사고일시']].value_counts()
-df_neseo_monday_count = pd.DataFrame(df_neseo_monday_count,columns=['사건횟수'])
-df_neseo_monday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_monday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_monday_count['시군구'] = list_sn  
-# print(df_neseo_monday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_monday = df_yangdec[df_yangdec['요일'] == '월요일']
-df_yangdec_monday_count = df_yangdec_monday[['사고일시']].value_counts()
-df_yangdec_monday_count = pd.DataFrame(df_yangdec_monday_count,columns=['사건횟수'])
-df_yangdec_monday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_monday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_monday_count['시군구'] = list_sn  
-# print(df_yangdec_monday_count)
-
-df_m = [df_neseo_monday_count,df_palong_monday_count,df_sangnam_monday_count,df_wongone_monday_count,df_yangdec_monday_count]
-df_monday = pd.concat(df_m,ignore_index=True)
-df_monday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_monday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_monday['사고일시'] = pd.to_numeric(df_monday['사고일시'])
-df_monday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_monday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_monday
-
-사고일시	사건횟수	시군구
-23	0	1	경상남도 창원시 의창구 팔용동
-15	1	1	경상남도 창원시 의창구 팔용동
-40	2	2	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	2	경상남도 창원시 성산구 상남동
-19	6	1	경상남도 창원시 의창구 팔용동
-37	7	4	경상남도 창원시 진해구 용원동
-35	8	1	경상남도 창원시 성산구 상남동
-59	9	1	경상남도 창원시 마산회원구 양덕동
-11	10	3	경상남도 창원시 의창구 팔용동
-13	11	2	경상남도 창원시 의창구 팔용동
-53	12	2	경상남도 창원시 마산회원구 양덕동
+## 맛에 관련되어 있는 명사와 형용사만 남김
+des_list = []
+for i in range(len(des_df['description'])):
+    taged_list = pos_tag(word_tokenize(str(des_df['description'][i])))
+    nouns_list = [t[0] for t in taged_list if t[1] == "NN" or  t[1] == "JJ"]
+    des_list.append(nouns_list)
+print(des_list)
 ```
-```python
-#top 5 화요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_tuesday = df_sangnam[df_sangnam['요일'] == '화요일']
-df_sangnam_tuesday_count = df_sangnam_tuesday[['사고일시']].value_counts()
-df_sangnam_tuesday_count = pd.DataFrame(df_sangnam_tuesday_count,columns=['사건횟수'])
-df_sangnam_tuesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_tuesday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_tuesday_count['시군구'] = list_sn  
-# print(df_sangnam_tuesday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_tuesday = df_wongone[df_wongone['요일'] == '화요일']
-df_wongone_tuesday_count = df_wongone_tuesday[['사고일시']].value_counts()
-df_wongone_tuesday_count = pd.DataFrame(df_wongone_tuesday_count,columns=['사건횟수'])
-df_wongone_tuesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_tuesday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_tuesday_count['시군구'] = list_sn  
-# print(df_wongone_tuesday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_tuesday = df_palong[df_palong['요일'] == '화요일']
-df_palong_tuesday_count = df_palong_tuesday[['사고일시']].value_counts()
-df_palong_tuesday_count = pd.DataFrame(df_palong_tuesday_count,columns=['사건횟수'])
-df_palong_tuesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_tuesday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_tuesday_count['시군구'] = list_sn  
-# print(df_palong_tuesday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_tuesday = df_neseo[df_neseo['요일'] == '화요일']
-df_neseo_tuesday_count = df_neseo_tuesday[['사고일시']].value_counts()
-df_neseo_tuesday_count = pd.DataFrame(df_neseo_tuesday_count,columns=['사건횟수'])
-df_neseo_tuesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_tuesday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_tuesday_count['시군구'] = list_sn  
-# print(df_neseo_tuesday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_tuesday = df_yangdec[df_yangdec['요일'] == '화요일']
-df_yangdec_tuesday_count = df_yangdec_tuesday[['사고일시']].value_counts()
-df_yangdec_tuesday_count = pd.DataFrame(df_yangdec_tuesday_count,columns=['사건횟수'])
-df_yangdec_tuesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_tuesday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_tuesday_count['시군구'] = list_sn  
-# print(df_yangdec_tuesday_count)
-
-df_m = [df_neseo_tuesday_count,df_palong_tuesday_count,df_sangnam_tuesday_count,df_wongone_tuesday_count,df_yangdec_tuesday_count]
-df_tuesday = pd.concat(df_m,ignore_index=True)
-df_tuesday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_tuesday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_tuesday['사고일시'] = pd.to_numeric(df_tuesday['사고일시'])
-df_tuesday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_tuesday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_tuesday
-
-	사고일시	사건횟수	시군구
-23	0	1	경상남도 창원시 의창구 팔용동
-15	1	2	경상남도 창원시 의창구 팔용동
-40	2	3	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	2	경상남도 창원시 성산구 상남동
-10	6	1	경상남도 창원시 마산회원구 내서읍
-41	7	2	경상남도 창원시 진해구 용원동
-```
+['[', 'ripe', 'fruity', 'wine', 'Firm', 'juicy', 'red', 'berry', 'acidity', 'drinkable', 'sandy', 'soil', 'wine', 'soft', 'open', 'accessible—with', 'black', 'light', 'grape', 'ready', 'bottling', 'rich', 'wood-aged', 'wine', 'full', 'ripe', 'yellow', 'tropical', 'rich', 'toasty', 'wine', 'warm', 'spicy', 'impressive', 'structure', 'potential', 'age', 'wine', 'second', 'generation', 'charge', 'estate', 'Drink', 'estate', 'south', 'rich', 'hot-country', 'wine', 'firm', 'solid', 'dark', 'juicy', 'black', 'fruit', 'background', 'dense', 'wine', 'lift', 'young', 'dark', 'concentrated', 'wine', 'year', 'wood', 'bottle', 'release', 'attractive', 'wine', 'solid', 'smooth', 'texture', 'concentration', 'bright', 'black', 'currant', 'fruit', 'vibrant', 'acidity', 'Ready', 'ripe', 'blend', 'richness', 'density', 'full', 'black', 'fruit', 'toast', 'touch', 'pepper', 'ripe', 'crisp', 'acidity', 'age', 'year', 'powerful', 'wine', 'full', 'ripe', 'solid', 'feel', 'dark', 'juicy', 'berry', 'blend', 'serious', 'aging', 'herb-dominant', 'wine', 'texture', 'creamy', 'character', 'green', 'acidity', 'bright', 'orange-zest', 'aftertaste', 'light', 'prickle', 'tongue', 'fresh', 'possible', 'clean', 'green', 'citrus', 'textured', 'richness', 'new', 'wine', 'master', 'winemaker', 'rich', 'black', 'dense', 'wine', 'layer', 'complexity', 'dark', 'name', 'selection', 'rich', 'smooth', 'full', 'ripe', 'fruit', 'dusty', 'suspension', 'black', 'plum', 'blueberry', 'fruit', 'juicy', 'acidity', 'wine', 'age', '.....
 
 ```python
-#top 5 수요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_wednesday = df_sangnam[df_sangnam['요일'] == '수요일']
-df_sangnam_wednesday_count = df_sangnam_wednesday[['사고일시']].value_counts()
-df_sangnam_wednesday_count = pd.DataFrame(df_sangnam_wednesday_count,columns=['사건횟수'])
-df_sangnam_wednesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_wednesday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_wednesday_count['시군구'] = list_sn  
-# print(df_sangnam_wednesday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_wednesday = df_wongone[df_wongone['요일'] == '수요일']
-df_wongone_wednesday_count = df_wongone_wednesday[['사고일시']].value_counts()
-df_wongone_wednesday_count = pd.DataFrame(df_wongone_wednesday_count,columns=['사건횟수'])
-df_wongone_wednesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_wednesday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_wednesday_count['시군구'] = list_sn  
-# print(df_wongone_wednesday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_wednesday = df_palong[df_palong['요일'] == '수요일']
-df_palong_wednesday_count = df_palong_wednesday[['사고일시']].value_counts()
-df_palong_wednesday_count = pd.DataFrame(df_palong_wednesday_count,columns=['사건횟수'])
-df_palong_wednesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_wednesday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_wednesday_count['시군구'] = list_sn  
-# print(df_palong_wednesday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_wednesday = df_neseo[df_neseo['요일'] == '수요일']
-df_neseo_wednesday_count = df_neseo_wednesday[['사고일시']].value_counts()
-df_neseo_wednesday_count = pd.DataFrame(df_neseo_wednesday_count,columns=['사건횟수'])
-df_neseo_wednesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_wednesday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_wednesday_count['시군구'] = list_sn  
-# print(df_neseo_wednesday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_wednesday = df_yangdec[df_yangdec['요일'] == '수요일']
-df_yangdec_wednesday_count = df_yangdec_wednesday[['사고일시']].value_counts()
-df_yangdec_wednesday_count = pd.DataFrame(df_yangdec_wednesday_count,columns=['사건횟수'])
-df_yangdec_wednesday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_wednesday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_wednesday_count['시군구'] = list_sn  
-# print(df_yangdec_wednesday_count)
-
-df_m = [df_neseo_wednesday_count,df_palong_wednesday_count,df_sangnam_wednesday_count,df_wongone_wednesday_count,df_yangdec_wednesday_count]
-df_wednesday = pd.concat(df_m,ignore_index=True)
-df_wednesday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_wednesday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_wednesday['사고일시'] = pd.to_numeric(df_wednesday['사고일시'])
-df_wednesday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_wednesday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_wednesday
-
-	사고일시	사건횟수	시군구
-23	0	1	경상남도 창원시 의창구 팔용동
-15	1	1	경상남도 창원시 의창구 팔용동
-40	2	2	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	3	경상남도 창원시 성산구 상남동
-10	6	3	경상남도 창원시 의창구 팔용동
-38	7	3	경상남도 창원시 진해구 용원동
-35	8	1	경상남도 창원시 성산구 상남동
-59	9	1	경상남도 창원시 마산회원구 양덕동
+des_df['description_word'] = des_list
+des_df
 ```
+	county	description	description_word
+0	Portugal	[This is ripe and fruity, a wine that is smoot...	[[, ripe, fruity, wine, Firm, juicy, red, berr...
+1	Australia	[This medium-bodied Chardonnay features aromas...	[medium-bodied, pineapple, cashew, Similar, ri...
+2	New Zealand	[The Stoneleigh style traditionally favors rip...	[[, style, herbaceousness, true, grapefruit, n...
+3	Spain	[Blackberry and raspberry aromas show a typica...	[[, typical, whiff, green, herbs, case, horser...
+4	Argentina	[Baked plum, molasses, balsamic vinegar and ch...	[[, plum, balsamic, vinegar, cheesy, oak, pala...
+5	Germany	[Savory dried thyme notes accent sunnier flavo...	[[, thyme, accent, preserved, peach, brisk, of...
+6	US	[Tart and snappy, the flavors of lime flesh an...	[[, snappy, lime, flesh, dominate, green, pine...
+7	Chile	[White flower, lychee and apple aromas carry t...	[[, flower, lychee, apple, aromas, mellow, bou...
+8	Italy	[Aromas include tropical fruit, broom, brimsto...	[[, tropical, fruit, broom, brimstone, herb, p...
+9	Austria	[Freshness characterizes the nose: green pear,...	[[, nose, green, pear, ivy, citrus, nose, pala...
+10	France	[This dry and restrained wine offers spice in ...	[[, dry, restrained, wine, profusion, acidity,...
+11	South Africa	[Etienne Le Riche is a total Cabernet speciali...	[[, total, specialist, tiny, production, sense...
 
 ```python
-#top 5 목요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_thursday = df_sangnam[df_sangnam['요일'] == '목요일']
-df_sangnam_thursday_count = df_sangnam_thursday[['사고일시']].value_counts()
-df_sangnam_thursday_count = pd.DataFrame(df_sangnam_thursday_count,columns=['사건횟수'])
-df_sangnam_thursday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_thursday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_thursday_count['시군구'] = list_sn  
-# print(df_sangnam_thursday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_thursday = df_wongone[df_wongone['요일'] == '목요일']
-df_wongone_thursday_count = df_wongone_thursday[['사고일시']].value_counts()
-df_wongone_thursday_count = pd.DataFrame(df_wongone_thursday_count,columns=['사건횟수'])
-df_wongone_thursday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_thursday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_thursday_count['시군구'] = list_sn  
-# print(df_wongone_thursday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_thursday = df_palong[df_palong['요일'] == '목요일']
-df_palong_thursday_count = df_palong_thursday[['사고일시']].value_counts()
-df_palong_thursday_count = pd.DataFrame(df_palong_thursday_count,columns=['사건횟수'])
-df_palong_thursday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_thursday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_thursday_count['시군구'] = list_sn  
-# print(df_palong_thursday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_thursday = df_neseo[df_neseo['요일'] == '목요일']
-df_neseo_thursday_count = df_neseo_thursday[['사고일시']].value_counts()
-df_neseo_thursday_count = pd.DataFrame(df_neseo_thursday_count,columns=['사건횟수'])
-df_neseo_thursday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_thursday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_thursday_count['시군구'] = list_sn  
-# print(df_neseo_thursday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_thursday = df_yangdec[df_yangdec['요일'] == '목요일']
-df_yangdec_thursday_count = df_yangdec_thursday[['사고일시']].value_counts()
-df_yangdec_thursday_count = pd.DataFrame(df_yangdec_thursday_count,columns=['사건횟수'])
-df_yangdec_thursday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_thursday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_thursday_count['시군구'] = list_sn  
-# print(df_yangdec_thursday_count)
-
-df_m = [df_neseo_thursday_count,df_palong_thursday_count,df_sangnam_thursday_count,df_wongone_thursday_count,df_yangdec_thursday_count]
-df_thursday = pd.concat(df_m,ignore_index=True)
-df_thursday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_thursday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_thursday['사고일시'] = pd.to_numeric(df_thursday['사고일시'])
-df_thursday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_thursday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_thursday
-
-	사고일시	사건횟수	시군구
-23	0	4	경상남도 창원시 성산구 상남동
-15	1	1	경상남도 창원시 의창구 팔용동
-40	2	2	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	2	경상남도 창원시 성산구 상남동
-10	6	2	경상남도 창원시 의창구 팔용동
-38	7	3	경상남도 창원시 진해구 용원동
-35	8	1	경상남도 창원시 성산구 상남동
-59	9	1	경상남도 창원시 마산회원구 양덕동
-0	10	3	경상남도 창원시 마산회원구 내서읍
+## 이중 리스트 삭제
+ls = []
+for i in range(len(des_df)):
+    a = des_df.iloc[i]['description_word']
+    b = ' '.join(filter(str.isalnum, a)) 
+    b = b.split(' ')
+    ls.append(b)
+des_df['description_word'] = ls
+des_df
 ```
+	county	description	description_word
+0	Portugal	[This is ripe and fruity, a wine that is smoot...	[ripe, fruity, wine, Firm, juicy, red, berry, ...
+1	Australia	[This medium-bodied Chardonnay features aromas...	[pineapple, cashew, Similar, ripe, pineapple, ...
+2	New Zealand	[The Stoneleigh style traditionally favors rip...	[style, herbaceousness, true, grapefruit, nect...
+3	Spain	[Blackberry and raspberry aromas show a typica...	[typical, whiff, green, herbs, case, horseradi...
+4	Argentina	[Baked plum, molasses, balsamic vinegar and ch...	[plum, balsamic, vinegar, cheesy, oak, palate,...
+5	Germany	[Savory dried thyme notes accent sunnier flavo...	[thyme, accent, preserved, peach, brisk, wine,...
+6	US	[Tart and snappy, the flavors of lime flesh an...	[snappy, lime, flesh, dominate, green, pineapp...
+7	Chile	[White flower, lychee and apple aromas carry t...	[flower, lychee, apple, aromas, mellow, bouque...
+8	Italy	[Aromas include tropical fruit, broom, brimsto...	[tropical, fruit, broom, brimstone, herb, pala...
+9	Austria	[Freshness characterizes the nose: green pear,...	[nose, green, pear, ivy, citrus, nose, palate,...
+10	France	[This dry and restrained wine offers spice in ...	[dry, restrained, wine, profusion, acidity, fi...
+11	South Africa	[Etienne Le Riche is a total Cabernet speciali...	[total, specialist, tiny, production, sense, c...
 
 ```python
-#top 5 금요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_friday = df_sangnam[df_sangnam['요일'] == '금요일']
-df_sangnam_friday_count = df_sangnam_friday[['사고일시']].value_counts()
-df_sangnam_friday_count = pd.DataFrame(df_sangnam_friday_count,columns=['사건횟수'])
-df_sangnam_friday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_friday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_friday_count['시군구'] = list_sn  
-# print(df_sangnam_friday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_friday = df_wongone[df_wongone['요일'] == '금요일']
-df_wongone_friday_count = df_wongone_friday[['사고일시']].value_counts()
-df_wongone_friday_count = pd.DataFrame(df_wongone_friday_count,columns=['사건횟수'])
-df_wongone_friday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_friday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_friday_count['시군구'] = list_sn  
-# print(df_wongone_friday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_friday = df_palong[df_palong['요일'] == '금요일']
-df_palong_friday_count = df_palong_friday[['사고일시']].value_counts()
-df_palong_friday_count = pd.DataFrame(df_palong_friday_count,columns=['사건횟수'])
-df_palong_friday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_friday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_friday_count['시군구'] = list_sn  
-# print(df_palong_friday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_friday = df_neseo[df_neseo['요일'] == '금요일']
-df_neseo_friday_count = df_neseo_friday[['사고일시']].value_counts()
-df_neseo_friday_count = pd.DataFrame(df_neseo_friday_count,columns=['사건횟수'])
-df_neseo_friday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_friday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_friday_count['시군구'] = list_sn  
-# print(df_neseo_friday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_friday = df_yangdec[df_yangdec['요일'] == '금요일']
-df_yangdec_friday_count = df_yangdec_friday[['사고일시']].value_counts()
-df_yangdec_friday_count = pd.DataFrame(df_yangdec_friday_count,columns=['사건횟수'])
-df_yangdec_friday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_friday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_friday_count['시군구'] = list_sn  
-# print(df_yangdec_friday_count)
-
-df_m = [df_neseo_friday_count,df_palong_friday_count,df_sangnam_friday_count,df_wongone_friday_count,df_yangdec_friday_count]
-df_friday = pd.concat(df_m,ignore_index=True)
-df_friday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_friday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_friday['사고일시'] = pd.to_numeric(df_friday['사고일시'])
-df_friday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_friday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_friday
-
-
-사고일시	사건횟수	시군구
-23	0	1	경상남도 창원시 의창구 팔용동
-15	1	2	경상남도 창원시 의창구 팔용동
-40	2	3	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	1	경상남도 창원시 성산구 상남동
-19	6	1	경상남도 창원시 의창구 팔용동
-41	7	2	경상남도 창원시 진해구 용원동
-35	8	1	경상남도 창원시 성산구 상남동
+## wordcloud 시각화
+for i in range(len(des_df)):
+    review_wordcloud = WordCloud(width=400,height=300,background_color='white').generate(str(des_df['description_word'][i]))
+    plt.imshow(review_wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.title(str(des_df['county'][i]))
+    plt.show()
 ```
-```python
-#top 5 토요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_saturday = df_sangnam[df_sangnam['요일'] == '토요일']
-df_sangnam_saturday_count = df_sangnam_saturday[['사고일시']].value_counts()
-df_sangnam_saturday_count = pd.DataFrame(df_sangnam_saturday_count,columns=['사건횟수'])
-df_sangnam_saturday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_saturday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_saturday_count['시군구'] = list_sn  
-# print(df_sangnam_saturday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_saturday = df_wongone[df_wongone['요일'] == '토요일']
-df_wongone_saturday_count = df_wongone_saturday[['사고일시']].value_counts()
-df_wongone_saturday_count = pd.DataFrame(df_wongone_saturday_count,columns=['사건횟수'])
-df_wongone_saturday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_saturday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_saturday_count['시군구'] = list_sn  
-# print(df_wongone_saturday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_saturday = df_palong[df_palong['요일'] == '토요일']
-df_palong_saturday_count = df_palong_saturday[['사고일시']].value_counts()
-df_palong_saturday_count = pd.DataFrame(df_palong_saturday_count,columns=['사건횟수'])
-df_palong_saturday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_saturday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_saturday_count['시군구'] = list_sn  
-# print(df_palong_saturday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_saturday = df_neseo[df_neseo['요일'] == '토요일']
-df_neseo_saturday_count = df_neseo_saturday[['사고일시']].value_counts()
-df_neseo_saturday_count = pd.DataFrame(df_neseo_saturday_count,columns=['사건횟수'])
-df_neseo_saturday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_saturday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_saturday_count['시군구'] = list_sn  
-# print(df_neseo_saturday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_saturday = df_yangdec[df_yangdec['요일'] == '토요일']
-df_yangdec_saturday_count = df_yangdec_saturday[['사고일시']].value_counts()
-df_yangdec_saturday_count = pd.DataFrame(df_yangdec_saturday_count,columns=['사건횟수'])
-df_yangdec_saturday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_saturday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_saturday_count['시군구'] = list_sn  
-# print(df_yangdec_saturday_count)
-
-df_m = [df_neseo_saturday_count,df_palong_saturday_count,df_sangnam_saturday_count,df_wongone_saturday_count,df_yangdec_saturday_count]
-df_saturday = pd.concat(df_m,ignore_index=True)
-df_saturday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_saturday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_saturday['사고일시'] = pd.to_numeric(df_saturday['사고일시'])
-df_saturday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_saturday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_saturday
-
-	사고일시	사건횟수	시군구
-23	0	2	경상남도 창원시 성산구 상남동
-15	1	2	경상남도 창원시 의창구 팔용동
-40	2	1	경상남도 창원시 진해구 용원동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	1	경상남도 창원시 성산구 상남동
-19	6	1	경상남도 창원시 의창구 팔용동
-6	7	1	경상남도 창원시 마산회원구 내서읍
-```
-```python
-#top 5 일요일 사고 일시
-
-# 상남동 
-df_sangnam = df[df['시군구'] == '경상남도 창원시 성산구 상남동']
-df_sangnam = df_sangnam[['시군구','사고일시','요일']]
-df_sangnam_sunday = df_sangnam[df_sangnam['요일'] == '일요일']
-df_sangnam_sunday_count = df_sangnam_sunday[['사고일시']].value_counts()
-df_sangnam_sunday_count = pd.DataFrame(df_sangnam_sunday_count,columns=['사건횟수'])
-df_sangnam_sunday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_sangnam_sunday_count)):
-    list_sn.append('경상남도 창원시 성산구 상남동')
-df_sangnam_sunday_count['시군구'] = list_sn  
-# print(df_sangnam_sunday_count)
-
-# 용원동
-df_wongone = df[df['시군구'] == '경상남도 창원시 진해구 용원동']
-df_wongone = df_wongone[['시군구','사고일시','요일']]
-df_wongone_sunday = df_wongone[df_wongone['요일'] == '일요일']
-df_wongone_sunday_count = df_wongone_sunday[['사고일시']].value_counts()
-df_wongone_sunday_count = pd.DataFrame(df_wongone_sunday_count,columns=['사건횟수'])
-df_wongone_sunday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_wongone_sunday_count)):
-    list_sn.append('경상남도 창원시 진해구 용원동')
-df_wongone_sunday_count['시군구'] = list_sn  
-# print(df_wongone_sunday_count)
-
-# 팔용동
-df_palong = df[df['시군구'] == '경상남도 창원시 의창구 팔용동']
-df_palong = df_palong[['시군구','사고일시','요일']]
-df_palong_sunday = df_palong[df_palong['요일'] == '일요일']
-df_palong_sunday_count = df_palong_sunday[['사고일시']].value_counts()
-df_palong_sunday_count = pd.DataFrame(df_palong_sunday_count,columns=['사건횟수'])
-df_palong_sunday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_palong_sunday_count)):
-    list_sn.append('경상남도 창원시 의창구 팔용동')
-df_palong_sunday_count['시군구'] = list_sn  
-# print(df_palong_sunday_count)
-
-# 내서읍
-df_neseo = df[df['시군구'] == '경상남도 창원시 마산회원구 내서읍']
-df_neseo = df_neseo[['시군구','사고일시','요일']]
-df_neseo_sunday = df_neseo[df_neseo['요일'] == '일요일']
-df_neseo_sunday_count = df_neseo_sunday[['사고일시']].value_counts()
-df_neseo_sunday_count = pd.DataFrame(df_neseo_sunday_count,columns=['사건횟수'])
-df_neseo_sunday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_neseo_sunday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 내서읍')
-df_neseo_sunday_count['시군구'] = list_sn  
-# print(df_neseo_sunday_count)
-
-# 양덕동
-df_yangdec = df[df['시군구'] == '경상남도 창원시 마산회원구 양덕동']
-df_yangdec = df_yangdec[['시군구','사고일시','요일']]
-df_yangdec_sunday = df_yangdec[df_yangdec['요일'] == '일요일']
-df_yangdec_sunday_count = df_yangdec_sunday[['사고일시']].value_counts()
-df_yangdec_sunday_count = pd.DataFrame(df_yangdec_sunday_count,columns=['사건횟수'])
-df_yangdec_sunday_count.reset_index(inplace=True)
-list_sn=[]
-for i in range(0,len(df_yangdec_sunday_count)):
-    list_sn.append('경상남도 창원시 마산회원구 양덕동')
-df_yangdec_sunday_count['시군구'] = list_sn  
-# print(df_yangdec_sunday_count)
-
-df_m = [df_neseo_sunday_count,df_palong_sunday_count,df_sangnam_sunday_count,df_wongone_sunday_count,df_yangdec_sunday_count]
-df_sunday = pd.concat(df_m,ignore_index=True)
-df_sunday.sort_values(by=['사건횟수'],axis=0,ascending=False,inplace=True)
-
-df_sunday['사고일시']=df['사고일시'].str.replace(pat=r'[ㄱ-ㅣ가-힣]+', repl= r'', regex=True)
-df_sunday['사고일시'] = pd.to_numeric(df_sunday['사고일시'])
-df_sunday.sort_values(by=['사고일시','사건횟수'],axis=0,ascending=True,inplace=True)
-df_sunday.drop_duplicates(['사고일시'],keep='last', inplace=True)
-df_sunday
-
-	사고일시	사건횟수	시군구
-23	0	1	경상남도 창원시 성산구 상남동
-15	1	1	경상남도 창원시 의창구 팔용동
-40	2	1	경상남도 창원시 마산회원구 양덕동
-5	3	1	경상남도 창원시 마산회원구 내서읍
-27	5	3	경상남도 창원시 진해구 용원동
-19	6	2	경상남도 창원시 성산구 상남동
-38	7	2	경상남도 창원시 마산회원구 양덕동
-```
-
-```python
-a = input('요일을 입력하세요:      ')
-b = input('시간을 입력하세요:       ')
-
-if a == '월요일':
-    df_monday['사고일시'] = df_monday['사고일시'].astype(str)
-    place = df_monday[df_monday.사고일시.str.startswith(b)].iloc[0,2]
-elif a == '화요일':
-    df_tuesday['사고일시'] = df_tuesday['사고일시'].astype(str)
-    place = df_tuesday[df_tuesday.사고일시.str.startswith(b)].iloc[0,2]
-elif a == '수요일':
-    df_wednesday['사고일시'] = df_wednesday['사고일시'].astype(str)
-    place = df_wednesday[df_wednesday.사고일시.str.startswith(b)].iloc[0,2]
-elif a =='목요일':
-    df_tuesday['사고일시'] = df_tuesday['사고일시'].astype(str)
-    place = df_tuesday[df_tuesday.사고일시.str.startswith(b)].iloc[0,2]
-elif a == '금요일':
-    df_friday['사고일시'] = df_friday['사고일시'].astype(str)
-    place = df_friday[df_friday.사고일시.str.startswith(b)].iloc[0,2]
-elif a == '토요일':
-    df_saturday['사고일시'] = df_df_saturdaysunday['사고일시'].astype(str)
-    place = df_saturday[df_saturday.사고일시.str.startswith(b)].iloc[0,2]
-elif a == '일요일':
-    df_sunday['사고일시'] = df_sunday['사고일시'].astype(str)
-    place = df_sunday[df_sunday.사고일시.str.startswith(b)].iloc[0,2]
-else:
-    print('요일 잘 못 입력')
-
-print('주요 사고 발생 지역:   ',place)
-try:
-    day = (place + '사무소')
-    gmap_key = 'AIzaSyD7RNFGi4878hN8gN5RVBpwgSfZ_TBVKko'
-    gmaps = googlemaps.Client(gmap_key)
-    geocode_result = gmaps.geocode((day), language='ko') 
-except:
-    print('사건미발생시간')
-latitude  = geocode_result[0]["geometry"]["location"]["lat"] # 리스트에서 위도 추출
-longitude = geocode_result[0]["geometry"]["location"]["lng"] # 리스트에서 경도 추출
-
-map = folium.Map(location=[latitude,longitude], zoom_start=15)
-folium.Marker([latitude,longitude],icon = folium.Icon(color='blue')).add_to(map)
-map
-
-요일을 입력하세요:      금요일
-시간을 입력하세요:       10
-주요 사고 발생 지역:    경상남도 창원시 의창구 팔용동
-```
-![image](https://user-images.githubusercontent.com/75477273/150951063-a29acfb0-883a-4fed-8f30-34af8a48560b.png)
+![download](https://user-images.githubusercontent.com/75477273/167278827-556ee951-5a55-4d91-b2b8-6f7039c27f3f.png)
+![download](https://user-images.githubusercontent.com/75477273/167278828-86ae19bc-51c4-413b-b756-9db9f33e4849.png)
+![download](https://user-images.githubusercontent.com/75477273/167278829-a5812400-e1c4-4e83-b887-2814f3b5807d.png)
+![download](https://user-images.githubusercontent.com/75477273/167278834-8336bf0b-7a89-4cce-8700-a09e76c62343.png)
+![download](https://user-images.githubusercontent.com/75477273/167278836-59d51d33-4c2b-45e4-840c-33cacea92ce3.png)
+![download](https://user-images.githubusercontent.com/75477273/167278837-58dc1a79-9cbc-4ed0-a75c-b10f5e8565d3.png)
+![download](https://user-images.githubusercontent.com/75477273/167278838-f3728cd1-eb0b-4baf-8949-8f58f3da483f.png)
+![download](https://user-images.githubusercontent.com/75477273/167278839-8706617f-29ea-41be-aef3-735efb10010a.png)
+![download](https://user-images.githubusercontent.com/75477273/167278842-4238a310-27b9-4bd0-a49f-7d1be115760d.png)
+![download](https://user-images.githubusercontent.com/75477273/167278844-01e782f6-a4b6-421c-9855-ff763bcc496e.png)
+![download](https://user-images.githubusercontent.com/75477273/167278845-1eeefc37-d2f4-40a4-8876-9c156d87a3bb.png)
+![download](https://user-images.githubusercontent.com/75477273/167278846-834ac8e6-3d3a-484f-9d0e-a10f5fdc8f89.png)
